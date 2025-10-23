@@ -73,10 +73,33 @@
     <section class="mb-10">
       <h2 class="font-bold text-center mb-3 text-lg border-b-2 border-[#0033A0] pb-1">Informasi Lebih Lanjut</h2>
       <div class="flex flex-col space-y-3">
-        <a href="https://www.bankmandiri.co.id/web/guest/contact-us" class="link-btn rounded-xl text-center py-2">Hubungi Kami KCP Bekasi Mustika Jaya</a>
+        <!-- Tombol yang membuka popup -->
+        <button onclick="openForm()" class="link-btn rounded-xl text-center py-2">Hubungi Kami KCP Bekasi Mustika Jaya</button>
         <a href="https://share.google/O3HkdloUjUv8aUSPA" class="link-btn rounded-xl text-center py-2">Review Cabang</a>
       </div>
     </section>
+  </div>
+
+  <!-- Popup Form -->
+  <div id="popupForm" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-xl shadow-lg w-96">
+      <h2 class="text-xl font-bold mb-4 text-center text-[#0033A0]">Hubungi Kami</h2>
+      <form id="contactForm">
+        <label class="block mb-2">Nama:</label>
+        <input type="text" id="nama" class="border p-2 w-full mb-3 rounded-lg" required>
+
+        <label class="block mb-2">Email:</label>
+        <input type="email" id="email" class="border p-2 w-full mb-3 rounded-lg" required>
+
+        <label class="block mb-2">Pesan:</label>
+        <textarea id="pesan" class="border p-2 w-full mb-3 rounded-lg" required></textarea>
+
+        <div class="flex justify-end gap-2 mt-4">
+          <button type="button" onclick="closeForm()" class="bg-gray-300 text-black px-3 py-2 rounded-lg">Batal</button>
+          <button type="submit" class="bg-[#0033A0] text-white px-3 py-2 rounded-lg">Kirim</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- Footer -->
@@ -91,10 +114,45 @@
     <p class="text-gray-400 text-xs mt-4">© 2025 Bank Mandiri Mustika Jaya</p>
   </footer>
 
+  <!-- Script -->
+  <script>
+    function openForm() {
+      document.getElementById("popupForm").classList.remove("hidden");
+    }
+
+    function closeForm() {
+      document.getElementById("popupForm").classList.add("hidden");
+    }
+
+    document.getElementById("contactForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const data = {
+        nama: document.getElementById("nama").value,
+        email: document.getElementById("email").value,
+        pesan: document.getElementById("pesan").value,
+      };
+
+      try {
+        const response = await fetch("
+https://script.google.com/macros/s/AKfycbwbPiU7vt5QDYW8LcnEDCHzFNv7Bs0HOCDquSunPEtwPJlWeegUelG5zHRQ1ii0Jxxs/exec ", {
+          method: "POST",
+          body: JSON.stringify(data),
+          headers: { "Content-Type": "application/json" },
+        });
+
+        if (response.ok) {
+          alert("Pesan berhasil dikirim!");
+          closeForm();
+          document.getElementById("contactForm").reset();
+        } else {
+          alert("Gagal mengirim data!");
+        }
+      } catch (error) {
+        alert("Terjadi kesalahan: " + error);
+      }
+    });
+  </script>
+
 </body>
 </html>
-
-
-
-
-
