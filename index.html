@@ -19,6 +19,23 @@
       color: white;
       transform: scale(1.03);
     }
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      justify-content: center;
+      align-items: center;
+      z-index: 50;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      width: 90%;
+      max-width: 380px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    }
   </style>
 </head>
 
@@ -73,24 +90,26 @@
     <section class="mb-10">
       <h2 class="font-bold text-center mb-3 text-lg border-b-2 border-[#0033A0] pb-1">Informasi Lebih Lanjut</h2>
       <div class="flex flex-col space-y-3">
-        <button id="openPopup" class="link-btn rounded-xl text-center py-2">Hubungi Kami KCP Bekasi Mustika Jaya</button>
+        <button onclick="openModal()" class="link-btn rounded-xl text-center py-2">Hubungi Kami KCP Bekasi Mustika Jaya</button>
         <a href="https://share.google/O3HkdloUjUv8aUSPA" class="link-btn rounded-xl text-center py-2">Review Cabang</a>
       </div>
     </section>
   </div>
 
-  <!-- POPUP FORM -->
-  <div id="popupForm" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-    <div class="bg-white rounded-2xl shadow-lg p-6 w-80 relative">
-      <button id="closePopup" class="absolute top-3 right-4 text-gray-500 hover:text-red-500 text-xl">×</button>
-      <h3 class="text-lg font-bold mb-4 text-center text-[#0033A0]">Hubungi Kami</h3>
+  <!-- Modal -->
+  <div id="contactModal" class="modal">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="font-bold text-lg">Hubungi Kami</h2>
+        <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 text-lg">&times;</button>
+      </div>
       <form id="contactForm" class="flex flex-col space-y-3">
-        <input type="text" name="nama" placeholder="Nama Lengkap" required class="border p-2 rounded-md">
-        <input type="email" name="email" placeholder="Email" required class="border p-2 rounded-md">
-        <textarea name="pesan" rows="3" placeholder="Pesan Anda" required class="border p-2 rounded-md"></textarea>
-        <button type="submit" class="bg-[#0033A0] text-white py-2 rounded-md hover:bg-[#002070]">Kirim</button>
+        <input id="nama" type="text" placeholder="Nama Anda" class="border rounded-md p-2" required>
+        <input id="email" type="email" placeholder="Email Anda" class="border rounded-md p-2" required>
+        <textarea id="pesan" placeholder="Pesan Anda" class="border rounded-md p-2" rows="3" required></textarea>
+        <button type="submit" class="bg-[#0033A0] text-white rounded-md py-2 hover:bg-blue-800">Kirim</button>
+        <p id="statusMsg" class="text-center text-sm mt-2"></p>
       </form>
-      <p id="responseMsg" class="text-center text-sm mt-3"></p>
     </div>
   </div>
 
@@ -106,44 +125,47 @@
     <p class="text-gray-400 text-xs mt-4">© 2025 Bank Mandiri Mustika Jaya</p>
   </footer>
 
-  <!-- SCRIPT -->
+  <!-- Script -->
   <script>
-    const popup = document.getElementById("popupForm");
-    const openBtn = document.getElementById("openPopup");
-    const closeBtn = document.getElementById("closePopup");
+    const scriptURL = "https://script.google.com/macros/s/AKfycbw2BZOdnwLuOHBjdCkQpwUK6_--Pqh4RrOji55-raSh8tCuSouVo0BlMKXiD7-d2uRa/exec";
+    const modal = document.getElementById("contactModal");
     const form = document.getElementById("contactForm");
-    const msg = document.getElementById("responseMsg");
+    const statusMsg = document.getElementById("statusMsg");
 
-    openBtn.addEventListener("click", () => popup.classList.remove("hidden"));
-    closeBtn.addEventListener("click", () => popup.classList.add("hidden"));
+    function openModal() { modal.style.display = "flex"; }
+    function closeModal() { modal.style.display = "none"; }
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      msg.textContent = "Mengirim...";
-      const data = Object.fromEntries(new FormData(form).entries());
+      statusMsg.textContent = "⏳ Mengirim data...";
+      statusMsg.className = "text-blue-600 text-center text-sm";
+
+      const data = {
+        nama: document.getElementById("nama").value,
+        email: document.getElementById("email").value,
+        pesan: document.getElementById("pesan").value,
+      };
 
       try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbyX2i6hCzYeU3lslJKumVavWGPmbYMj-D8Nlbsn1h46xHbd41mo5phKUoQl0N7FeEP2/exec", {
+        await fetch(scriptURL, {
           method: "POST",
-          body: JSON.stringify(data),
+          mode: "no-cors",
           headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
         });
-        if (res.ok) {
-          msg.textContent = "✅ Pesan berhasil dikirim!";
-          msg.className = "text-green-600 text-center mt-2";
-          form.reset();
-          setTimeout(() => popup.classList.add("hidden"), 2000);
-        } else {
-          throw new Error("Gagal mengirim data");
-        }
-      } catch (err) {
-        msg.textContent = "❌ Terjadi kesalahan. Coba lagi.";
-        msg.className = "text-red-600 text-center mt-2";
+        statusMsg.textContent = "✅ Data berhasil dikirim!";
+        statusMsg.className = "text-green-600 text-center text-sm";
+        form.reset();
+      } catch (error) {
+        statusMsg.textContent = "❌ Terjadi kesalahan. Coba lagi.";
+        statusMsg.className = "text-red-600 text-center text-sm";
       }
     });
-  </script>
 
+    // Tutup modal jika klik di luar
+    window.onclick = function(event) {
+      if (event.target == modal) closeModal();
+    };
+  </script>
 </body>
 </html>
-
-
