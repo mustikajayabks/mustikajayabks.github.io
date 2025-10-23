@@ -19,17 +19,6 @@
       color: white;
       transform: scale(1.03);
     }
-    /* Popup */
-    .popup-bg {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.4);
-      backdrop-filter: blur(2px);
-      justify-content: center;
-      align-items: center;
-      z-index: 50;
-    }
   </style>
 </head>
 
@@ -47,6 +36,7 @@
 
   <!-- Section Template -->
   <div class="w-full max-w-xs">
+    
     <!-- Pinjaman -->
     <section class="mb-8">
       <h2 class="font-bold text-center mb-3 text-lg border-b-2 border-[#0033A0] pb-1">💰 Pinjaman</h2>
@@ -90,17 +80,17 @@
   </div>
 
   <!-- POPUP FORM -->
-  <div id="popupForm" class="popup-bg">
-    <div class="bg-white rounded-2xl shadow-xl p-6 w-80 relative">
-      <button id="closePopup" class="absolute top-2 right-3 text-gray-400 hover:text-black text-xl">✕</button>
-      <h3 class="text-lg font-bold text-center mb-4 text-[#0033A0]">Hubungi Kami</h3>
-      <form id="contactForm" class="space-y-3">
-        <input type="text" name="nama" placeholder="Nama" required class="w-full border rounded-lg px-3 py-2" />
-        <input type="email" name="email" placeholder="Email" required class="w-full border rounded-lg px-3 py-2" />
-        <textarea name="pesan" placeholder="Pesan Anda..." required class="w-full border rounded-lg px-3 py-2"></textarea>
-        <button type="submit" class="w-full bg-[#0033A0] text-white rounded-lg py-2 font-semibold hover:bg-[#00267a]">Kirim</button>
+  <div id="popupForm" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div class="bg-white rounded-2xl shadow-lg p-6 w-80 relative">
+      <button id="closePopup" class="absolute top-3 right-4 text-gray-500 hover:text-red-500 text-xl">×</button>
+      <h3 class="text-lg font-bold mb-4 text-center text-[#0033A0]">Hubungi Kami</h3>
+      <form id="contactForm" class="flex flex-col space-y-3">
+        <input type="text" name="nama" placeholder="Nama Lengkap" required class="border p-2 rounded-md">
+        <input type="email" name="email" placeholder="Email" required class="border p-2 rounded-md">
+        <textarea name="pesan" rows="3" placeholder="Pesan Anda" required class="border p-2 rounded-md"></textarea>
+        <button type="submit" class="bg-[#0033A0] text-white py-2 rounded-md hover:bg-[#002070]">Kirim</button>
       </form>
-      <p id="statusMsg" class="text-center text-sm mt-3"></p>
+      <p id="responseMsg" class="text-center text-sm mt-3"></p>
     </div>
   </div>
 
@@ -116,33 +106,39 @@
     <p class="text-gray-400 text-xs mt-4">© 2025 Bank Mandiri Mustika Jaya</p>
   </footer>
 
+  <!-- SCRIPT -->
   <script>
     const popup = document.getElementById("popupForm");
-    document.getElementById("openPopup").onclick = () => popup.style.display = "flex";
-    document.getElementById("closePopup").onclick = () => popup.style.display = "none";
+    const openBtn = document.getElementById("openPopup");
+    const closeBtn = document.getElementById("closePopup");
+    const form = document.getElementById("contactForm");
+    const msg = document.getElementById("responseMsg");
 
-    // Submit ke Google Sheets
-    document.getElementById("contactForm").addEventListener("submit", async (e) => {
+    openBtn.addEventListener("click", () => popup.classList.remove("hidden"));
+    closeBtn.addEventListener("click", () => popup.classList.add("hidden"));
+
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const form = e.target;
-      const data = {
-        nama: form.nama.value,
-        email: form.email.value,
-        pesan: form.pesan.value,
-      };
+      msg.textContent = "Mengirim...";
+      const data = Object.fromEntries(new FormData(form).entries());
 
-      const response = await fetch("https://script.google.com/macros/s/AKfycbwbPiU7vt5QDYW8LcnEDCHzFNv7Bs0HOCDquSunPEtwPJlWeegUelG5zHRQ1ii0Jxxs/exec", {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const statusMsg = document.getElementById("statusMsg");
-      if (response.ok) {
-        statusMsg.textContent = "✅ Pesan berhasil dikirim!";
-        form.reset();
-      } else {
-        statusMsg.textContent = "❌ Terjadi kesalahan, coba lagi.";
+      try {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbwbPiU7vt5QDYW8LcnEDCHzFNv7Bs0HOCDquSunPEtwPJlWeegUelG5zHRQ1ii0Jxxs/exec", {
+          method: "POST",
+          body: JSON.stringify(data),
+          headers: { "Content-Type": "application/json" },
+        });
+        if (res.ok) {
+          msg.textContent = "✅ Pesan berhasil dikirim!";
+          msg.className = "text-green-600 text-center mt-2";
+          form.reset();
+          setTimeout(() => popup.classList.add("hidden"), 2000);
+        } else {
+          throw new Error("Gagal mengirim data");
+        }
+      } catch (err) {
+        msg.textContent = "❌ Terjadi kesalahan. Coba lagi.";
+        msg.className = "text-red-600 text-center mt-2";
       }
     });
   </script>
