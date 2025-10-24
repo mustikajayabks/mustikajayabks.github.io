@@ -19,29 +19,22 @@
       color: white;
       transform: scale(1.03);
     }
-    .modal {
+    /* Popup overlay */
+    .overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.4);
+      background-color: rgba(0, 0, 0, 0.4);
       justify-content: center;
       align-items: center;
       z-index: 50;
-    }
-    .modal-content {
-      background: white;
-      border-radius: 12px;
-      padding: 24px;
-      width: 90%;
-      max-width: 380px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
     }
   </style>
 </head>
 
 <body class="font-sans text-[#0033A0] flex flex-col items-center min-h-screen py-10 px-6">
 
-  <!-- Logo Mandiri -->
+  <!-- Logo -->
   <img src="asset/logo-mandiri.png" alt="Logo Mandiri" class="w-40 mb-6 drop-shadow-md" />
 
   <!-- Nama Cabang -->
@@ -51,9 +44,8 @@
     Kode Cabang: <strong>15680</strong>
   </p>
 
-  <!-- Section Template -->
   <div class="w-full max-w-xs">
-    
+
     <!-- Pinjaman -->
     <section class="mb-8">
       <h2 class="font-bold text-center mb-3 text-lg border-b-2 border-[#0033A0] pb-1">💰 Pinjaman</h2>
@@ -90,26 +82,24 @@
     <section class="mb-10">
       <h2 class="font-bold text-center mb-3 text-lg border-b-2 border-[#0033A0] pb-1">Informasi Lebih Lanjut</h2>
       <div class="flex flex-col space-y-3">
-        <button onclick="openModal()" class="link-btn rounded-xl text-center py-2">Hubungi Kami KCP Bekasi Mustika Jaya</button>
+        <button onclick="openPopup()" class="link-btn rounded-xl text-center py-2">Hubungi Kami KCP Bekasi Mustika Jaya</button>
         <a href="https://share.google/O3HkdloUjUv8aUSPA" class="link-btn rounded-xl text-center py-2">Review Cabang</a>
       </div>
     </section>
   </div>
 
-  <!-- Modal -->
-  <div id="contactModal" class="modal">
-    <div class="modal-content">
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="font-bold text-lg">Hubungi Kami</h2>
-        <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 text-lg">&times;</button>
-      </div>
-      <form id="contactForm" class="flex flex-col space-y-3">
-        <input id="nama" type="text" placeholder="Nama Anda" class="border rounded-md p-2" required>
-        <input id="email" type="email" placeholder="Email Anda" class="border rounded-md p-2" required>
-        <textarea id="pesan" placeholder="Pesan Anda" class="border rounded-md p-2" rows="3" required></textarea>
-        <button type="submit" class="bg-[#0033A0] text-white rounded-md py-2 hover:bg-blue-800">Kirim</button>
-        <p id="statusMsg" class="text-center text-sm mt-2"></p>
+  <!-- Popup Form -->
+  <div id="popup" class="overlay hidden">
+    <div class="bg-white rounded-xl shadow-lg p-6 w-80 relative">
+      <h3 class="text-lg font-bold mb-4 text-center">Hubungi Kami</h3>
+      <form id="hubungiForm" class="space-y-3">
+        <input type="text" name="nama" placeholder="Nama Lengkap" required class="w-full border rounded-lg px-3 py-2" />
+        <input type="tel" name="telepon" placeholder="Nomor Telepon" required class="w-full border rounded-lg px-3 py-2" />
+        <textarea name="pesan" placeholder="Pesan Anda" required class="w-full border rounded-lg px-3 py-2"></textarea>
+        <button type="submit" class="w-full bg-[#0033A0] text-white rounded-lg py-2 hover:bg-blue-800">Kirim</button>
+        <button type="button" onclick="closePopup()" class="w-full border border-[#0033A0] text-[#0033A0] rounded-lg py-2 hover:bg-blue-50">Batal</button>
       </form>
+      <p id="successMsg" class="text-green-600 text-center mt-3 hidden">✅ Pesan berhasil dikirim!</p>
     </div>
   </div>
 
@@ -125,47 +115,43 @@
     <p class="text-gray-400 text-xs mt-4">© 2025 Bank Mandiri Mustika Jaya</p>
   </footer>
 
-  <!-- Script -->
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbw2BZOdnwLuOHBjdCkQpwUK6_--Pqh4RrOji55-raSh8tCuSouVo0BlMKXiD7-d2uRa/exec";
-    const modal = document.getElementById("contactModal");
-    const form = document.getElementById("contactForm");
-    const statusMsg = document.getElementById("statusMsg");
+    const scriptURL = "https://script.google.com/macros/s/AKfycbxw7OWK4cjlS51K4mJ8P9c_p3QmgZGps6vkzxwJpII_w7CrPrumJH7n_ueicGFeKPrD/exec";
 
-    function openModal() { modal.style.display = "flex"; }
-    function closeModal() { modal.style.display = "none"; }
+    function openPopup() {
+      document.getElementById('popup').style.display = 'flex';
+    }
+    function closePopup() {
+      document.getElementById('popup').style.display = 'none';
+    }
 
-    form.addEventListener("submit", async (e) => {
+    document.getElementById('hubungiForm').addEventListener('submit', async function (e) {
       e.preventDefault();
-      statusMsg.textContent = "⏳ Mengirim data...";
-      statusMsg.className = "text-blue-600 text-center text-sm";
-
-      const data = {
-        nama: document.getElementById("nama").value,
-        email: document.getElementById("email").value,
-        pesan: document.getElementById("pesan").value,
+      const formData = {
+        nama: this.nama.value,
+        telepon: this.telepon.value,
+        pesan: this.pesan.value
       };
-
       try {
-        await fetch(scriptURL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
+        const res = await fetch(scriptURL, {
+          method: 'POST',
+          body: JSON.stringify(formData),
+          headers: { 'Content-Type': 'application/json' }
         });
-        statusMsg.textContent = "✅ Data berhasil dikirim!";
-        statusMsg.className = "text-green-600 text-center text-sm";
-        form.reset();
-      } catch (error) {
-        statusMsg.textContent = "❌ Terjadi kesalahan. Coba lagi.";
-        statusMsg.className = "text-red-600 text-center text-sm";
+        if (res.ok) {
+          this.reset();
+          document.getElementById('successMsg').classList.remove('hidden');
+          setTimeout(() => {
+            closePopup();
+            document.getElementById('successMsg').classList.add('hidden');
+          }, 2000);
+        } else {
+          alert("Terjadi kesalahan, coba lagi nanti.");
+        }
+      } catch (err) {
+        alert("Gagal mengirim data: " + err.message);
       }
     });
-
-    // Tutup modal jika klik di luar
-    window.onclick = function(event) {
-      if (event.target == modal) closeModal();
-    };
   </script>
 </body>
 </html>
